@@ -241,6 +241,8 @@ def update_catalog(config, catalog, identity, *, synced_at="", sync_error=""):
         name = row["name"]
         if row.get("kind") == "xhh_account" and "小黑盒账号" not in name:
             name = f"{name} · 小黑盒账号"
+        elif row.get("kind") == "xhh_keyword" and "小黑盒关键词" not in name:
+            name = f"{name} · 小黑盒关键词"
         feed_options[row["id"]] = f"{name} · {'我的监控' if row['owned'] else '公共监控'}"
     items["subscription"]["items"]["custom_feed_ids"].update(options=list(feed_options), labels=list(feed_options.values()))
     presets = catalog.get("custom_presets", {})
@@ -334,6 +336,7 @@ def apply_subscription(targets, umo, response):
             for field in target_schema()["subscription"]["items"]:
                 if field.startswith("channel_"):
                     target["subscription"][field] = [key for key in response["channels"] if key.startswith(field.removeprefix("channel_") + ":")]
-        for field in ("daily_enabled", "daily_time", "updates_enabled"):
-            target["notifications"][field] = response[field]
+        for field in ("daily_enabled", "daily_time", "updates_enabled", "revisions_enabled"):
+            if field in response:
+                target["notifications"][field] = response[field]
         break
